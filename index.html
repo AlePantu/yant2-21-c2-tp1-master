@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Ejercicio 1</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Agregamos el framework Bootstrap para simplificarnos el estilo de la visualización.-->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+    <!-- Agregamos también el framework vue.js como hacíamos con JQuery (referenciando el código desde la nube)-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.6.10/vue.min.js"></script>
+</head>
+
+<div class="container">
+    <div id="app">
+        <h1 v-text="`${getDocumentosUnicos.size} dni distintos`"> </h1>
+        <input type="text" class="form-control form-control-lg" v-model="criterioDeBusqueda"
+            placeholder="Ingresar un criterio de busqueda...">
+        <br>
+
+        <h5 v-text="`${personasFiltradas.length} resultados`"> </h5>
+
+        <div class="card-deck">
+            <div class="row">
+                <div class="col" v-for="persona in personasFiltradas" :key="persona.dni">
+                    <div class="card mb-3">
+                        <div>
+                            <div class="card-body">
+                                <h5 class="card-title">{{getNombreCompleto(persona)}}</h5>
+                                <p class="card-text">dni {{persona.dni}}</p>
+                                <a href="#" class="card-link">{{persona.correo}}</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+</div>
+
+</html>
+
+<script>
+    new Vue({
+        el: '#app',
+        data: {
+            criterioDeBusqueda: '',
+            //Lesto
+            personas:
+                [
+                    { nombre: 'Gaspar', apellido: 'De Carlo', dni: 29502368, correo: 'gaspar.decarlo@ort.edu.ar' },
+                    { nombre: 'Ejemplo', apellido: 'Ejemplo', dni: 123456, correo: 'ejemplo@gmail.com' },
+                    { nombre: 'Gabriel', apellido: 'Paoli', dni: 32888444, correo: 'gabrielpaoli@hotmail.com' },
+                    { nombre: 'Alejandro', apellido: 'Pantuliano', dni: 30860508, correo: 'alepantuliano@hotmail.com' },
+                ]
+        },
+        computed: {
+            //Primero para mostrar la cantidad de personas y segundo para recorrer los resultados y mostrarlos
+            personasFiltradas() {
+                let resultado = [] // Crea un array
+                resultado = this.personas.filter((persona) => {
+                    //Concatenamos todos los datos de la persona para poder filtrar luego por cualquier criterio.
+                    let registroConcatenado = `${persona.nombre}${persona.apellido}${persona.dni}${persona.correo}`
+                    //Es importante que la comparación sea siempre entre dos strings en minuscula (o los dos en mayuscula).
+                    return registroConcatenado.toLowerCase().includes(this.criterioDeBusqueda.toLowerCase())
+                });
+                return resultado
+
+            },
+
+            getDocumentosUnicos() {
+                return new Set(this.personas.map(p => p.dni)) //un Set de datos es una colección de valores únicos
+                //Referencia de la clase Set: https://developer.mozilla.org/es/docs/Web/JavaScript/Referencia/Objetos_globales/Set
+            }
+        },
+        methods: {
+            getNombreCompleto(persona) {
+                return `${persona.nombre} ${persona.apellido}` //Devuelve el nombre y el apellido de la persona como String
+            },
+            /* filter recibe una funcion (la que nosotros querramos).
+               *  Según el valor booleano que devolvamos por cada elemento, lo agregará o no al nuevo array (en este caso al array "resultado")
+               */
+            quitarPersonasRepetidas() {
+                const setDeDniUnicos = this.getDocumentosUnicos
+
+                let resultado = this.personas.filter(persona => {
+                    if (setDeDniUnicos.has(persona.dni)) {
+                        setDeDniUnicos.delete(persona.dni)
+                        return true
+                    }
+                    else {
+                        return false
+                    }
+                })
+                this.personas = resultado //Ojo! esta asignación está fuera del metodo filter.
+            }
+
+        },
+        // Se ejecuta despues de que la instancia es creada, supongo que para asegurarse de que las personas se hayan creado antes de sacar las repetidas.
+        created() {
+            this.quitarPersonasRepetidas()
+        }
+    });
+</script>
